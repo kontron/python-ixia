@@ -113,6 +113,14 @@ class Statistics(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'stat'
     __tcl_members__ = [
             TclMember('bytesReceived', type=int, flags=FLAG_RDONLY),
+            TclMember('bytesSent', type=int, flags=FLAG_RDONLY),
+            TclMember('bitsReceived', type=int, flags=FLAG_RDONLY),
+            TclMember('bitsSent', type=int, flags=FLAG_RDONLY),
+            TclMember('framesReceived', type=int, flags=FLAG_RDONLY),
+            TclMember('framesSent', type=int, flags=FLAG_RDONLY),
+            TclMember('fcsErrors', type=int, flags=FLAG_RDONLY),
+            TclMember('framerFCSErrors', type=int, flags=FLAG_RDONLY),
+            TclMember('fragments', type=int, flags=FLAG_RDONLY),
     ]
 
     def __init__(self, api, port):
