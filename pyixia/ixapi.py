@@ -53,12 +53,29 @@ Note that there is only one temporary storage for each command.
 
 FLAG_RDONLY = 1
 
+def two_chars(s):
+    for i in range(len(s)-1):
+        yield (s[i], s[i+1])
+
 def translate_ix_member_name(name):
-    _new_name = list()
-    for (n,c) in enumerate(name):
-        if c.isupper() and n != 0:
-            _new_name.append('_')
-        _new_name.append(c.lower())
+    if len(name) == 1:
+        return name.lower()
+    else:
+        _new_name = list()
+        seperator = ''
+        for cc in two_chars(name):
+            if cc[0].isupper(): # CC, Cc
+                if cc[1].islower(): # Cc
+                    seperator = '_'
+                _new_name.extend((seperator, cc[0].lower()))
+                seperator = ''
+            else: # cc, cC
+                _new_name.append(cc[0].lower())
+                if cc[1].isupper(): # cC
+                    seperator = '_'
+        _new_name.extend((seperator, cc[1].lower())) # append last character
+        if _new_name[0] == '_': # delete leading underscore
+            del _new_name[0]
     return ''.join(_new_name)
 
 
