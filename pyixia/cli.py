@@ -3,6 +3,7 @@
 import logging
 import sys
 import argparse
+import os
 
 from pyixia import Ixia
 
@@ -48,14 +49,13 @@ def get_statistics(i, ports_list, statistics_list):
         print
 
 def main():
-    usage = 'usage: %(prog)s [options]'
+    usage = 'usage: %(prog)s <host> [options]'
     parser = argparse.ArgumentParser(usage=usage)
+    parser.add_argument('host', help='be more verbose')
     parser.add_argument('-v', action='store_true', dest='verbose',
             help='be more verbose')
     parser.add_argument('-d', action='store_true', dest='debug',
             help='enable debug mode')
-    parser.add_argument('-i', '--interface', dest='host', default='ixia01',
-            help='connect to host', metavar='HOST')
     parser.add_argument('-o', '--ownership', dest='ownership', default='pyixia',
             help='use ownership', metavar='OWNER')
     parser.add_argument('-p', '--ports', dest='ports_list', type=int,
