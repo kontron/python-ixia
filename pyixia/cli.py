@@ -4,6 +4,7 @@ import logging
 import sys
 import argparse
 import os
+import socket
 
 from pyixia import Ixia
 
@@ -77,24 +78,26 @@ def main():
     if args.debug:
         logging.getLogger('').setLevel(logging.DEBUG)
 
-    i = Ixia(args.host)
-    i.connect()
-    i.discover()
+    try:
+        i = Ixia(args.host)
+        i.connect()
+        i.discover()
 
-    i.session.login(args.ownership)
-    pg = i.new_port_group()
-    pg.create()
+        i.session.login(args.ownership)
+        pg = i.new_port_group()
+        pg.create()
 
-    ports_list = add_ports(i, pg, args.ports_list)
-    if args.commands_string:
-        exec_commands(pg, args.commands_string)
+        ports_list = add_ports(i, pg, args.ports_list)
+        if args.commands_string:
+            exec_commands(pg, args.commands_string)
 
-    if args.statistics_list:
-        get_statistics(i, ports_list, args.statistics_list)
+        if args.statistics_list:
+            get_statistics(i, ports_list, args.statistics_list)
 
-    pg.destroy()
-
-    i.disconnect()
+        pg.destroy()
+        i.disconnect()
+    except socket.error as e:
+        print e.strerror
 
 if __name__ == '__main__':
     main()
