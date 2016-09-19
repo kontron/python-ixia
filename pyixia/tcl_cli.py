@@ -42,7 +42,7 @@ def main():
                     (res, io) = tcl.call(cmd)
                     print res
                     if io is not None:
-                        print io
+                        print io.replace('\r','\n')
                 except TclError, e:
                     print 'ERROR: %s' % e.result
     except EOFError:
