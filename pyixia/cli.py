@@ -17,6 +17,8 @@ ALLOWED_STATISTICS='bytes_received bytes_sent \
         frames_received frames_sent \
         fcs_errors framer_fcs_errors fragments'.split()
 
+ALLOWED_SETTINGS='factory_defaults mode_defaults'.split()
+
 def add_ports(i, pg, ports_list):
     print "ports: ", ports_list
 
@@ -49,6 +51,16 @@ def get_statistics(i, ports_list, statistics_list):
             print '%18d |' % method,
         print
 
+def set_settings(i, ports_list, settings_list):
+    for p in ports_list:
+        port = i.chassis.cards[p[0]].ports[p[1]]
+        for setting in settings_list:
+            print 'port: %s, setting: %s' % (port, setting)
+            method = getattr(port, setting)
+            print "methods of port: " 
+            print dir(port)
+            method(port)
+
 def main():
     usage = 'usage: %(prog)s <host> [options]'
     parser = argparse.ArgumentParser(usage=usage)
@@ -69,6 +81,9 @@ def main():
     parser.add_argument('-s', '--statistics', dest='statistics_list',
             help='show statistics', metavar='statistic_counter',
             choices=ALLOWED_STATISTICS, action='append')
+    parser.add_argument('-S', '--Settings', dest='settings_list',
+            help='set port settings', metavar='port_setting_argument',
+            choices=ALLOWED_SETTINGS, action='append')
 
     args = parser.parse_args()
 
@@ -93,6 +108,9 @@ def main():
 
         if args.statistics_list:
             get_statistics(i, ports_list, args.statistics_list)
+
+        if args.settings_list:
+            set_settings(i, ports_list, args.settings_list)
 
         pg.destroy()
         i.disconnect()

@@ -185,6 +185,17 @@ class Port(object):
     def __str__(self):
         return '%d/%d/%d' % self._port_id()
 
+    def factory_defaults(self, port):
+        self._api.call('port setFactoryDefaults %d %d %d',
+                *port._port_id())
+        self._api.call('port write %d %d %d', *port._port_id())
+
+    def mode_defaults(self, port):
+        self._api.call('port setFactoryDefaults %d %d %d',
+                *port._port_id())
+        self._api.call('port write %d %d %d', *port._port_id())
+
+
 class Card(object):
     __metaclass__ = _MetaIxTclApi
     __tcl_command__ = 'card'
