@@ -1,0 +1,9 @@
+speed=1000
+autonegotiate=true
+#phy_mode=PHY_MODE_FIBER
+phy_mode=1
+apply
+#
+$streams=1
+framesize=1518
+apply
