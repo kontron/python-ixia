@@ -16,7 +16,7 @@ ALLOWED_STATISTICS='bytes_received bytes_sent \
         frames_received frames_sent \
         fcs_errors framer_fcs_errors fragments'.split()
 
-ALLOWED_SETTINGS='factory_defaults mode_defaults'.split()
+ALLOWED_SETTINGS='factory_defaults mode_defaults apply'.split()
 
 def add_ports(i, pg, ports_list):
     print "ports: ", ports_list
@@ -57,9 +57,37 @@ def set_settings(i, ports_list, settings_list):
         for setting in settings_list:
             print 'port: %s, setting: %s' % (port, setting)
             method = getattr(port, setting)
-            print "methods of port: " 
-            print dir(port)
-            method(port)
+            logging.info('methods of port: \n %s \n', dir(port))
+            method()
+
+
+def perform_file_settings(i, ports_list, file):
+    settings = [line.rstrip('\n') for line in open(file)]
+    for (card_id, port_id) in ports_list:
+        port = i.chassis.cards[card_id].ports[port_id]
+        method = port
+        for setting in settings:
+            logging.info('port: %s, setting: %s', port, setting)
+            if setting[0] == '#':
+                # comment
+                pass
+                logging.info('ignore comment: %s', setting)
+            elif setting[0] == '$':
+                # set submethod of port
+                (attr, value) = setting[1:].split('=')
+                method = getattr(port, attr)[int(value)]
+            else:
+                setting = setting.split('=')
+                if len(setting) == 1:
+                    # call method
+                    attr = setting[0]
+                    getattr(method, attr)()
+                else:
+                    # set value
+                    (attr, value) = setting
+                    setattr(method, attr, value)
+            logging.info('attr of method: \n %s \n', dir(method))
+
 
 def main():
     usage = 'usage: %(prog)s <host> [options]'
@@ -84,6 +112,8 @@ def main():
     parser.add_argument('-g', '--Settings', dest='settings_list',
             help='set port settings', metavar='port_setting_argument',
             choices=ALLOWED_SETTINGS, action='append')
+    parser.add_argument('-f', '--file', dest='file',
+            help='set file for settings', metavar='settings_file')
 
     args = parser.parse_args()
 
@@ -103,14 +133,17 @@ def main():
         pg.create()
 
         ports_list = add_ports(i, pg, args.ports_list)
+        if args.file:
+            perform_file_settings(i, ports_list, args.file)
+
+        if args.settings_list:
+            set_settings(i, ports_list, args.settings_list)
+
         if args.commands_string:
             exec_commands(pg, args.commands_string)
 
         if args.statistics_list:
             get_statistics(i, ports_list, args.statistics_list)
-
-        if args.settings_list:
-            set_settings(i, ports_list, args.settings_list)
 
         pg.destroy()
         i.disconnect()
