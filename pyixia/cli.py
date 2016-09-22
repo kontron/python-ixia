@@ -3,7 +3,6 @@
 import logging
 import sys
 import argparse
-import os
 import socket
 
 from pyixia import Ixia
@@ -24,27 +23,28 @@ def add_ports(i, pg, ports_list):
 
     ports_list = map(lambda x: (int(x[0])-1, int(x[1])-1), ports_list)
 
-    for p in ports_list:
-        pg.add_port(i.chassis.cards[p[0]].ports[p[1]])
+    for (card_id, port_id) in ports_list:
+        pg.add_port(i.chassis.cards[card_id].ports[port_id])
     
     return ports_list
 
 def exec_commands(pg, commands_list):
-    print '* port_group objects:\n', dir(pg), '\n'
+    logging.info('port_group objects:\n %s \n', dir(pg))
     for command in commands_list:
         print command
         method = getattr(pg, command)
         method()
 
 def get_statistics(i, ports_list, statistics_list):
-    print '* stats objects: \n', dir(i.chassis.cards[0].ports[0].stats), '\n'
+    logging.info('stats objects: \n %s \n', 
+            dir(i.chassis.cards[0].ports[0].stats))
     print '    Port | ',
     for statistics in statistics_list:
         print '%18s |' % statistics,
     print
 
-    for p in ports_list:
-        port = i.chassis.cards[p[0]].ports[p[1]]
+    for (card_id, port_id) in ports_list:
+        port = i.chassis.cards[card_id].ports[port_id]
         print '%8s | ' % port,
         for statistic in statistics_list:
             method = getattr(port.stats, statistic)
@@ -52,8 +52,8 @@ def get_statistics(i, ports_list, statistics_list):
         print
 
 def set_settings(i, ports_list, settings_list):
-    for p in ports_list:
-        port = i.chassis.cards[p[0]].ports[p[1]]
+    for (card_id, port_id) in ports_list:
+        port = i.chassis.cards[card_id].ports[port_id]
         for setting in settings_list:
             print 'port: %s, setting: %s' % (port, setting)
             method = getattr(port, setting)
@@ -81,7 +81,7 @@ def main():
     parser.add_argument('-s', '--statistics', dest='statistics_list',
             help='show statistics', metavar='statistic_counter',
             choices=ALLOWED_STATISTICS, action='append')
-    parser.add_argument('-S', '--Settings', dest='settings_list',
+    parser.add_argument('-g', '--Settings', dest='settings_list',
             help='set port settings', metavar='port_setting_argument',
             choices=ALLOWED_SETTINGS, action='append')
 
