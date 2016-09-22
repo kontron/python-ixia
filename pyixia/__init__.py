@@ -149,6 +149,8 @@ class Port(object):
             TclMember('linkState', type=int, flags=FLAG_RDONLY),
             TclMember('portMode', type=int),
             TclMember('transmitMode'),
+            TclMember('speed', type=int),
+            TclMember('autonegotiate', type=bool),
     ]
 
     LINK_STATE_DOWN = 0
@@ -166,6 +168,9 @@ class Port(object):
     LINK_STATE_FPGA_DOWNLOAD_FAILED = 12
     LINK_STATE_LOSS_OF_FRAME = 24
     LINK_STATE_LOSS_OF_SIGNAL = 25
+
+    PHY_MODE_COPPER = 0
+    PHY_MODE_FIBER = 1
 
     def __init__(self, tcl, parent, id):
         self.card = parent
@@ -185,16 +190,25 @@ class Port(object):
     def __str__(self):
         return '%d/%d/%d' % self._port_id()
 
-    def factory_defaults(self, port):
-        self._api.call('port setFactoryDefaults %d %d %d',
-                *port._port_id())
-        self._api.call('port write %d %d %d', *port._port_id())
+    def apply(self):
+        self._api.call('port write %d %d %d', *self._port_id())
 
-    def mode_defaults(self, port):
-        self._api.call('port setFactoryDefaults %d %d %d',
-                *port._port_id())
-        self._api.call('port write %d %d %d', *port._port_id())
+    def factory_defaults(self):
+        self._api.call('port setFactoryDefaults %d %d %d', *self._port_id())
+        self.apply()
 
+    def mode_defaults(self):
+        self._api.call('port setFactoryDefaults %d %d %d', *self._port_id())
+        self.apply()
+
+    @property
+    def phy_mode(self):
+        self._ix_get(self)
+        return int(self._api.call('port cget -phyMode')[0])
+
+    @phy_mode.setter
+    def phy_mode(self, mode):
+        self._api.call('port setPhyMode %s %d %d %d', mode, *self._port_id())
 
 class Card(object):
     __metaclass__ = _MetaIxTclApi
