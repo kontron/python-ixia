@@ -137,6 +137,47 @@ class Statistics(object):
                 member.name, *self.port._port_id())
 
 
+class StreamWrapper(object):
+    def __init__(self, tcl, parent):
+        self._api = tcl
+        self.parent = parent
+
+    def __getitem__(self, idx):
+        return Stream(self._api, self.parent, idx)
+
+
+class Stream(object):
+    __metaclass__ = _MetaIxTclApi
+    __tcl_command__ = 'stream'
+    __tcl_members__ = [
+            TclMember('name'),
+            TclMember('enable', type=bool),
+            TclMember('sa', type=int),
+            TclMember('da', type=int),
+            TclMember('framesize', type=int),
+    ]
+
+    def __init__(self, tcl, port, id):
+        self._api = tcl
+        self.port = port
+        self.id = id
+
+    def _stream_id(self):
+        return self.port._port_id() + (self.id,)
+
+    def _ix_get(self, member, id):
+        self._api.call('stream get %d %d %d %d', *self._stream_id())
+
+    def _ix_set(self, id):
+        self._api.call('stream set %d %d %d %d', *self._stream_id())
+
+    def __str__(self):
+        return '%d/%d/%d.%d' % self._stream_id()
+
+    def apply(self):
+        self._api.call('stream write %d %d %d %d', *self._stream_id())
+
+
 class Port(object):
     __metaclass__ = _MetaIxTclApi
     __tcl_command__ = 'port'
@@ -177,6 +218,7 @@ class Port(object):
         self.id = id
         self._api = tcl
         self.stats = Statistics(tcl, self)
+        self.streams = StreamWrapper(self._api, self)
 
     def _ix_get(self, member):
         self._api.call_rc('port get %d %d %d', *self._port_id())
