@@ -14,6 +14,15 @@ def link_state_str(link_state):
                 return attr[len(prefix):]
     return link_state
 
+def phy_mode_str(phy_mode):
+    prefix = 'PHY_MODE_'
+    for attr in dir(Port):
+        if attr.startswith(prefix):
+            val = getattr(Port, attr)
+            if val == int(phy_mode):
+                return attr[len(prefix):]
+    return phy_mode
+
 def main():
     logging.basicConfig()
     if len(sys.argv) == 2 and sys.argv[1] == '-v':
@@ -25,14 +34,15 @@ def main():
     i.connect()
     i.discover()
 
-    print '%8s | %8s | %s' % ('Port', 'Owner', 'Link State')
-    print '---------+----------+-----------------'
+    print '%8s | %10s | %10s | %10s' % ('Port', 'Owner', 'Link State', 'Phy Mode')
+    print '---------+------------+------------+-----------'
     for card in i.chassis.cards:
         if card is None:
             continue
         for port in card.ports:
-            print '%8s | %8s | %s' % (port, port.owner,
-                    link_state_str(port.link_state))
+            print '%8s | %10s | %10s | %10s' % (port, port.owner,
+                    link_state_str(port.link_state),
+                    phy_mode_str(port.phy_mode))
 
     i.disconnect()
 
