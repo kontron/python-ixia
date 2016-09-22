@@ -124,8 +124,8 @@ class Statistics(object):
             TclMember('fragments', type=int, flags=FLAG_RDONLY),
     ]
 
-    def __init__(self, api, port):
-        self._api = api
+    def __init__(self, tcl, port):
+        self._api = tcl
         self.port = port
 
     def _ix_get(self, member):
