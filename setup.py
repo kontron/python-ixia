@@ -46,5 +46,3 @@ setup(name = 'pyixia',
         },
         include_package_data = True,
 )
-print "***"
-print find_packages()
