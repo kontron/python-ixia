@@ -5,7 +5,7 @@ import io
 import os
 import sys
 
-import ixnetwork
+import pyixia
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -35,7 +35,7 @@ class PyTest(TestCommand):
 
 setup(
     name='python-ixia',
-    version=ixnetwork.__version__,
+    version=pyixia.__version__,
     url='https://github.com/shmir/python-ixia/',
     license='GNU Lesser General Public License v2 (LGPLv2)',
     author='Michael Walle',
