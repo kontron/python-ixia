@@ -19,7 +19,7 @@ from tclproto import TclClient
 from ixapi import _MetaIxTclApi, TclMember, FLAG_RDONLY
 from ixapi import IxTclHalApi, IxTclHalError
 
-__version__ = '0.9.4.0'
+__version__ = '0.9.4.1'
 
 log = logging.getLogger(__name__)
 
