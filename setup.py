@@ -5,9 +5,9 @@ import io
 import os
 import sys
 
-import pyixia
-
 here = os.path.abspath(os.path.dirname(__file__))
+
+__version__ = '0.9.4.2'
 
 
 def read(*filenames, **kwargs):
@@ -35,12 +35,12 @@ class PyTest(TestCommand):
 
 setup(
     name='python-ixia',
-    version=pyixia.__version__,
+    version=__version__,
     url='https://github.com/shmir/python-ixia/',
     license='GNU Lesser General Public License v2 (LGPLv2)',
     author='Michael Walle',
     tests_require=[],
-    install_requires=[],
+    install_requires=['paramiko'],
     cmdclass={},
     author_email='michael.walle@kontron.com',
     description='Python OO API package to automate Ixia IxExplorer traffic generator',
@@ -57,6 +57,5 @@ setup(
         'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
         'Operating System :: OS Independent',
         'Topic :: Software Development :: Testing :: Traffic Generation'],
-    extras_require={
-    }
+    extras_require={}
 )
