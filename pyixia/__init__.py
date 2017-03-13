@@ -21,6 +21,7 @@ from ixapi import IxTclHalApi, IxTclHalError
 
 log = logging.getLogger(__name__)
 
+
 class PortGroup(object):
     START_TRANSMIT = 7
     STOP_TRANSMIT = 8
@@ -61,12 +62,10 @@ class PortGroup(object):
         self._api.call_rc('portGroup destroy %s', self.id)
 
     def add_port(self, port):
-        self._api.call_rc('portGroup add %s %d %d %d',
-                self.id, *port._port_id())
+        self._api.call_rc('portGroup add %s %d %d %d', self.id, *port._port_id())
 
     def del_port(self, port):
-        self._api.call_rc('portGroup del %s %d %d %d',
-                self.id, *port._port_id())
+        self._api.call_rc('portGroup del %s %d %d %d', self.id, *port._port_id())
 
     def _set_command(self, cmd):
         self._api.call_rc('portGroup setCommand %s %d', self.id, cmd)
@@ -121,12 +120,10 @@ class Statistics(object):
         self.port = port
 
     def _ix_get(self, member):
-        self._api.call('stat get %s %d %d %d',
-                member.name, *self.port._port_id())
+        self._api.call('stat get %s %d %d %d', member.name, *self.port._port_id())
 
     def _ix_set(self, member):
-        self._api.call('stat set %s %d %d %d',
-                member.name, *self.port._port_id())
+        self._api.call('stat set %s %d %d %d', member.name, *self.port._port_id())
 
 
 class Port(object):
@@ -177,6 +174,7 @@ class Port(object):
     def __str__(self):
         return '%d/%d/%d' % self._port_id()
 
+
 class Card(object):
     __metaclass__ = _MetaIxTclApi
     __tcl_command__ = 'card'
@@ -210,7 +208,7 @@ class Card(object):
 
     def discover(self):
         for pid in xrange(self.port_count):
-            pid += 1 # one-based
+            pid += 1
             port = Port(self._api, self, pid)
             log.info('Adding port %s', port)
             self.ports.append(port)
@@ -256,6 +254,24 @@ class Chassis(object):
     TYPE_OPTIXIAX16 = 19
     TYPE_OPTIXIAXL10 = 20
     TYPE_OPTIXIAXM12 = 22
+    TYPE_OPTIXIAXV = 24
+
+    TYPES = {2: 'ixia1600', 'ixia1600': 2,
+             3: 'ixia200', 'ixia200': 3,
+             4: 'ixia400', 'ixia400': 4,
+             5: 'ixia100', 'ixia100': 5,
+             6: 'ixia400C', 'ixia400C': 6,
+             7: 'ixia1600T', 'ixia1600T': 7,
+             9: 'ixiaDemo', 'ixiaDemo': 9,
+             10: 'ixiaOptixia', 'ixiaOptixia': 10,
+             11: 'ixiaOpixJr', 'ixiaOpixJr': 11,
+             14: 'ixia400T', 'ixia400T': 14,
+             17: 'ixia250', 'ixia250': 17,
+             18: 'ixia400Tf', 'ixia400Tf': 18,
+             19: 'ixiaOptixiaX16', 'ixiaOptixiaX16': 19,
+             20: 'ixiaOptixiaXL10', 'ixiaOptixiaXL10': 20,
+             22: 'ixiaOptixiaXM12', 'ixiaOptixiaXM12': 22,
+             24: 'ixiaOptixiaXV', 'ixiaOptixiaXV': 24}
 
     OS_UNKNOWN = 0
     OS_WIN95 = 1
@@ -293,7 +309,7 @@ class Chassis(object):
             # unfortunately there is no config option which cards are used. So
             # we have to iterate over all possible card ids and check if we are
             # able to get a handle.
-            cid += 1 # one-based
+            cid += 1
             try:
                 card = Card(self._api, self, cid)
                 log.info('Adding card %s (%s)', card, card.type_name)
@@ -302,6 +318,7 @@ class Chassis(object):
             except IxTclHalError:
                 # keep in sync with card ids
                 self.cards.append(None)
+
 
 class Session(object):
     __metaclass__ = _MetaIxTclApi
@@ -329,9 +346,9 @@ class Session(object):
 
 class Ixia(object):
     """This class supports only one chassis atm."""
-    def __init__(self, host):
+    def __init__(self, host, port=4555, rsa_id=None):
         self.host = host
-        self._tcl = TclClient(host)
+        self._tcl = TclClient(host, port, rsa_id)
         self._api = IxTclHalApi(self._tcl)
         self.chassis = Chassis(self._api, host)
         self.session = Session(self._api)

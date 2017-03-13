@@ -20,25 +20,33 @@
 
 import socket
 import logging
+import paramiko
 
 log = logging.getLogger(__name__)
 
+
 class TclError(Exception):
+
     def __init__(self, result):
         self.result = result
+
     def __repr__(self):
         return '%s(result="%s")' % (self.__class__.__name__, self.result)
+
     def __str__(self):
         return '%s: %s' % (self.__class__.__name__, self.result)
 
+
 class TclClient:
-    def __init__(self, host, port=4555):
+
+    def __init__(self, host, port=4555, rsa_id=None):
         self.host = host
         self.port = port
+        self.rsa_id = rsa_id
         self.fd = None
         self.buffersize = 10240
 
-    def call(self, string, *args):
+    def socket_call(self, string, *args):
         if self.fd is None:
             raise RuntimeError('TclClient is not connected')
 
@@ -52,7 +60,7 @@ class TclClient:
         # where tcl_return code is exactly one byte
         data = self.fd.recv(self.buffersize)
         log.debug('received %s (%s)', data.rstrip(), data.encode('hex'))
-        #print 'data=(%s) (%s)' % (data, data.encode('hex'))
+        # print 'data=(%s) (%s)' % (data, data.encode('hex'))
         assert data[-2:] == '\r\n'
 
         tcl_result = int(data[-3])
@@ -65,11 +73,29 @@ class TclClient:
             io_output = None
 
         if tcl_result == 1:
-            assert io_output == None
+            assert not io_output
             raise TclError(result)
 
         log.debug('result=%s io_output=%s', result, io_output)
         return result, io_output
+
+    def ssh_call(self, string, *args):
+        data = 'puts [{}]\n\r'.format(string % args)
+        log.debug('sending %s (%s)', data.rstrip(), data.encode('hex'))
+        self.stdin.write(data)
+        self.stdin.flush()
+        l = len(self.stdout.channel.in_buffer)
+        while not l:
+            l = len(self.stdout.channel.in_buffer)
+        data = self.stdout.read(l)
+        log.debug('received %s (%s)', data.rstrip(), data.encode('hex'))
+        return data
+
+    def call(self, string, *args):
+        if self.windows_server:
+            return self.socket_call(string, *args)
+        else:
+            return self.ssh_call(string, *args)
 
     def _tcl_hal_version(self):
         rsp = self.call('version cget -ixTclHALVersion')
@@ -77,9 +103,21 @@ class TclClient:
 
     def connect(self):
         log.debug('Opening connection to %s:%d', self.host, self.port)
-        fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        fd.connect((self.host, self.port))
-        self.fd = fd
+
+        if self.port == 8022:
+            self.windows_server = False
+            key = paramiko.RSAKey.from_private_key_file(self.rsa_id)
+            self.fd = paramiko.SSHClient()
+            self.fd.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.fd.connect(hostname=self.host, port=self.port, username='ixtcl', pkey=key)
+            self.stdin, self.stdout, _ = self.fd.exec_command('')
+            self.call('source /opt/ixia/ixos/current/IxiaWish.tcl')
+        else:
+            self.windows_server = True
+            fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            fd.connect((self.host, self.port))
+            self.fd = fd
+
         self.call('package req IxTclHal')
 
     def close(self):

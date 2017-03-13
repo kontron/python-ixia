@@ -53,9 +53,10 @@ Note that there is only one temporary storage for each command.
 
 FLAG_RDONLY = 1
 
+
 def translate_ix_member_name(name):
     _new_name = list()
-    for (n,c) in enumerate(name):
+    for (n, c) in enumerate(name):
         if c.isupper() and n != 0:
             _new_name.append('_')
         _new_name.append(c.lower())
@@ -74,8 +75,10 @@ class TclMember(object):
 class IxTclHalError(Exception):
     def __init__(self, rc):
         self.rc = rc
+
     def __repr__(self):
         return '%s(rc="%s")' % (self.__class__.__name__, self.rc)
+
     def __str__(self):
         return '%s: %s' % (self.__class__.__name__, self.rc)
 
@@ -110,17 +113,17 @@ class _MetaIxTclApi(type):
     def __new__(cls, clsname, clsbases, clsdict):
         members = clsdict.get('__tcl_members__', list())
         command = clsdict.get('__tcl_command__', None)
-        for (n,m) in enumerate(members):
+        for (n, m) in enumerate(members):
             if not isinstance(m, TclMember):
-                raise RuntimeError('Element #%d of __tcl_members__ is not a '
-                        'TclMember' % (n+1,))
+                raise RuntimeError('Element #%d of __tcl_members__ is not a TclMember' % (n+1,))
+
             def fget(self, cmd=command, m=m):
                 self._ix_get(m)
-                val = self._api.call('%s cget -%s' % (cmd,m.name))[0]
+                val = self._api.call('%s cget -%s' % (cmd, m.name))[0]
                 return m.type(val)
 
             def fset(self, value, cmd=command, m=m):
-                val = self._api.call('%s config -%s %s' % (cmd,m.name,value))
+                self._api.call('%s config -%s %s' % (cmd, m.name, value))
                 self._ix_set(m)
 
             attrname = m.attrname
@@ -142,5 +145,3 @@ class _MetaIxTclApi(type):
             clsdict[attrname] = p
         t = type.__new__(cls, clsname, clsbases, clsdict)
         return t
-
-
