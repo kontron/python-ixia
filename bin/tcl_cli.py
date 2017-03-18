@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 import sys
 import logging
-import readline
 from optparse import OptionParser
 
 from pyixia.tclproto import TclClient, TclError
 
+
 def main():
     usage = 'usage: %prog [options] <host>'
     parser = OptionParser(usage=usage)
-    parser.add_option('-a', action='store_true', dest='autoconnect',
-            help='autoconnect to chassis')
-    parser.add_option('-v', action='store_true', dest='verbose',
-            help='be more verbose')
+    parser.add_option('-a', action='store_true', dest='autoconnect', help='autoconnect to chassis')
+    parser.add_option('-v', action='store_true', dest='verbose', help='be more verbose')
 
     (options, args) = parser.parse_args()
 
@@ -29,7 +27,10 @@ def main():
     tcl = TclClient(host)
     tcl.connect()
     if options.autoconnect:
-        print tcl.call('ixConnectToChassis %s', host)[1]
+        print tcl.connect()
+        print tcl.call('chassis add ' + host)
+        print tcl.call('chassis config -id 1')
+        print tcl.call('chassis set ' + host)
 
     print "Enter command to send. Quit with 'q'."
     try:

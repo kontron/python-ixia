@@ -219,6 +219,15 @@ class Card(object):
     def __str__(self):
         return '%d/%d' % self._card_id()
 
+    def add_vm_port(self, port_id, nic_id, mac, promiscuous=0, mtu=1500, speed=1000):
+        card_id = self._card_id()
+        self._api.call_rc('card addVMPort {} {} {} {} {} {} {} {}'.
+                          format(card_id[0], card_id[1], port_id, nic_id, promiscuous, mac, mtu, speed))
+        return Port(self._api, self, port_id)
+
+    def remove_vm_port(self, card):
+        self._api.call_rc('chassis removeVMCard {} {}'.format(self.host, card.id))
+
 
 class Chassis(object):
     __metaclass__ = _MetaIxTclApi
@@ -318,6 +327,13 @@ class Chassis(object):
             except IxTclHalError:
                 # keep in sync with card ids
                 self.cards.append(None)
+
+    def add_vm_card(self, card_ip, card_id, keep_alive=300):
+        self._api.call_rc('chassis addVirtualCard {} {} {} {}'.format(self.host, card_ip, card_id, keep_alive))
+        return Card(self._api, self, card_id)
+
+    def remove_vm_card(self, card):
+        self._api.call_rc('chassis removeVMCard {} {}'.format(self.host, card.id))
 
 
 class Session(object):

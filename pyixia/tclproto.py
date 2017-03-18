@@ -18,11 +18,14 @@
 # Protocol parser for IXIA's underlying TclServer
 #
 
+import sys
 import socket
 import logging
 import paramiko
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler(sys.stdout))
+log.setLevel(logging.DEBUG)
 
 
 class TclError(Exception):
