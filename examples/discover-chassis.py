@@ -31,13 +31,14 @@ def main():
     i.connect()
     i.discover()
 
-    print '%8s | %8s | %s' % ('Port', 'Owner', 'Link State')
-    print '---------+----------+-----------------'
+    print '%8s | %8s | %10s | %s' % ('Port', 'Owner', 'Link State', 'Speeds')
+    print '---------+----------+------------+-------------------------------'
     for card in i.chassis.cards:
         if card is None:
             continue
         for port in card.ports:
-            print '%8s | %8s | %s' % (port, port.owner, link_state_str(port.link_state))
+            print '%8s | %8s | %10s | %s' % (port, port.owner.strip(), link_state_str(port.link_state),
+                                             port.supported_speeds())
 
     i.disconnect()
 

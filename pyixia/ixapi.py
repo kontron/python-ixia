@@ -113,6 +113,8 @@ class _MetaIxTclApi(type):
     def __new__(cls, clsname, clsbases, clsdict):
         members = clsdict.get('__tcl_members__', list())
         command = clsdict.get('__tcl_command__', None)
+        commands = clsdict.get('__tcl_commands__', list())
+
         for (n, m) in enumerate(members):
             if not isinstance(m, TclMember):
                 raise RuntimeError('Element #%d of __tcl_members__ is not a TclMember' % (n+1,))
@@ -144,4 +146,10 @@ class _MetaIxTclApi(type):
 
             clsdict[attrname] = p
         t = type.__new__(cls, clsname, clsbases, clsdict)
+
+        for c in commands:
+            def f(self, *args, **kwargs):
+                return self._ix_command(c, *args, **kwargs)
+            setattr(t, translate_ix_member_name(c), f)
+
         return t
