@@ -15,11 +15,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
+import re
+
 from tclproto import TclClient
 from ixapi import _MetaIxTclApi, TclMember, FLAG_RDONLY
 from ixapi import IxTclHalApi, IxTclHalError
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler())
 
 
 class PortGroup(object):
@@ -140,6 +143,8 @@ class Port(object):
             TclMember('transmitMode'),
     ]
 
+    __tcl_commands__ = ['getFeature']
+
     LINK_STATE_DOWN = 0
     LINK_STATE_UP = 1
     LINK_STATE_LOOPBACK = 2
@@ -168,11 +173,19 @@ class Port(object):
     def _ix_set(self, member):
         self._api.call_rc('port set %d %d %d', *self._port_id())
 
+    def _ix_command(self, command, *args):
+        port_id = self._port_id()
+        return self._api.call('port {} {} {} {} {}'.format(command, port_id[0], port_id[1], port_id[2], *args))
+
     def _port_id(self):
         return self.card._card_id() + (self.id,)
 
     def __str__(self):
         return '%d/%d/%d' % self._port_id()
+
+    def supported_speeds(self):
+        aaa = self.get_feature('ethernetLineRate')
+        return re.findall(r'\d+', self.get_feature('ethernetLineRate'))
 
 
 class Card(object):
@@ -214,7 +227,7 @@ class Card(object):
             self.ports.append(port)
 
     def _card_id(self):
-        return (self.chassis.id, self.id)
+        return (self.chassis._chassis_id(), self.id)
 
     def __str__(self):
         return '%d/%d' % self._card_id()
@@ -292,6 +305,9 @@ class Chassis(object):
         self.host = host
         self.cards = []
         self._api = api
+
+    def _chassis_id(self):
+        return self.id
 
     def _ix_add(self):
         self._api.call_rc('chassis add %s', self.host)

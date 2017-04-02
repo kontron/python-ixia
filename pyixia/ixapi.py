@@ -113,14 +113,16 @@ class _MetaIxTclApi(type):
     def __new__(cls, clsname, clsbases, clsdict):
         members = clsdict.get('__tcl_members__', list())
         command = clsdict.get('__tcl_command__', None)
+        commands = clsdict.get('__tcl_commands__', list())
+
         for (n, m) in enumerate(members):
             if not isinstance(m, TclMember):
                 raise RuntimeError('Element #%d of __tcl_members__ is not a TclMember' % (n+1,))
 
             def fget(self, cmd=command, m=m):
                 self._ix_get(m)
-                val = self._api.call('%s cget -%s' % (cmd, m.name))[0]
-                return m.type(val)
+                val = self._api.call('%s cget -%s' % (cmd, m.name))
+                return m.type(val if type(val) is str else val[0])
 
             def fset(self, value, cmd=command, m=m):
                 self._api.call('%s config -%s %s' % (cmd, m.name, value))
@@ -144,4 +146,11 @@ class _MetaIxTclApi(type):
 
             clsdict[attrname] = p
         t = type.__new__(cls, clsname, clsbases, clsdict)
+
+        for c in commands:
+            def f(self, *args, **kwargs):
+                rc = self._ix_command(c, *args, **kwargs)
+                return rc if type(rc) is str else rc[0]
+            setattr(t, translate_ix_member_name(c), f)
+
         return t
