@@ -5,9 +5,9 @@ import sys
 
 from pyixia import Ixia, Port
 
-host = '192.168.42.61'
+host = '192.168.42.174'
 # For Linux servers use 8022
-tcp_port = 4555
+tcp_port = 8022
 # Required only for Linux servers
 rsa_id = 'C:/Program Files (x86)/Ixia/IxOS/8.20-EA/TclScripts/lib/ixTcl1.0/id_rsa'
 

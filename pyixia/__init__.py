@@ -184,7 +184,6 @@ class Port(object):
         return '%d/%d/%d' % self._port_id()
 
     def supported_speeds(self):
-        aaa = self.get_feature('ethernetLineRate')
         return re.findall(r'\d+', self.get_feature('ethernetLineRate'))
 
 
