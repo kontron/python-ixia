@@ -122,7 +122,7 @@ class _MetaIxTclApi(type):
             def fget(self, cmd=command, m=m):
                 self._ix_get(m)
                 val = self._api.call('%s cget -%s' % (cmd, m.name))
-                return m.type(val if type(val) is str else val[0])
+                return m.type(val.strip() if type(val) is str else val[0])
 
             def fset(self, value, cmd=command, m=m):
                 self._api.call('%s config -%s %s' % (cmd, m.name, value))

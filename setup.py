@@ -7,7 +7,7 @@ import sys
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-__version__ = '0.9.6.1'
+__version__ = '0.9.6.2'
 
 
 def read(*filenames, **kwargs):

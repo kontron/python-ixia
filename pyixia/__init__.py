@@ -198,7 +198,7 @@ class Card(object):
             TclMember('fpgaVersion', type=int, flags=FLAG_RDONLY),
             TclMember('hwVersion', type=int, flags=FLAG_RDONLY),
             TclMember('portCount', type=int, flags=FLAG_RDONLY),
-            TclMember('serialNumber', type=int, flags=FLAG_RDONLY),
+            TclMember('serialNumber', flags=FLAG_RDONLY),
             TclMember('txFrequencyDeviation', type=int),
             TclMember('type', type=int, flags=FLAG_RDONLY),
             TclMember('typeName'),
