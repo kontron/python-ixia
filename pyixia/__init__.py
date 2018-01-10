@@ -137,6 +137,61 @@ class Statistics(object):
                 member.name, *self.port._port_id())
 
 
+class StreamProtocol(object):
+    __metaclass__ = _MetaIxTclApi
+    __tcl_command__ = 'protocol'
+    __tcl_members__ = [
+            TclMember('name'),
+            TclMember('appName'),
+            TclMember('ethernetType'),
+            TclMember('enable802dot1qTag'),
+            TclMember('enableISLtag', type=bool),
+            TclMember('enableMPLS', type=bool),
+            TclMember('enableMaxSec', type=bool),
+            TclMember('enableOAM', type=bool),
+    ]
+
+    def __init__(self, tcl, stream):
+        self._api = tcl
+        self.stream = stream
+
+    def _ix_get(self, member, id):
+        self.stream._ix_get(member, id)
+
+    def _ix_set(self, id):
+        self.stream._ix_set(id)
+
+    def __str__(self):
+        return self.stream.__str__(self)
+
+class StreamVlan(object):
+    __metaclass__ = _MetaIxTclApi
+    __tcl_command__ = 'vlan'
+    __tcl_members__ = [
+            TclMember('vlanID', type=int),
+            TclMember('userPriority'),
+            TclMember('cfi'),
+            TclMember('mode'),
+            TclMember('repeate', type=int),
+            TclMember('step', type=int),
+            TclMember('maskval'),
+            TclMember('protocolTagId', type=bool),
+    ]
+
+    def __init__(self, tcl, stream):
+        self._api = tcl
+        self.stream = stream
+
+    def _ix_get(self, member, id):
+        self.stream._ix_get(member, id)
+
+    def _ix_set(self, id):
+        self.stream._ix_set(id)
+
+    def __str__(self):
+        return self.stream.__str__(self)
+
+
 class StreamWrapper(object):
     def __init__(self, tcl, parent):
         self._api = tcl
@@ -161,6 +216,8 @@ class Stream(object):
         self._api = tcl
         self.port = port
         self.id = id
+        self.protocol = StreamProtocol(tcl, self)
+        self.vlan = StreamVlan(tcl, self)
 
     def _stream_id(self):
         return self.port._port_id() + (self.id,)
