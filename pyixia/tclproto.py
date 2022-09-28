@@ -44,16 +44,15 @@ class TclClient:
 
         string += '\r\n'
         data = string % args
-        log.debug('sending %s (%s)', data.rstrip(), data.encode('hex'))
+        log.debug('sending %s (%s)', data.rstrip(), data.encode('utf-8').hex())
         self.fd.send(data)
 
         # reply format is
         #  [<io output>\r]<result><tcl return code>\r\n
         # where tcl_return code is exactly one byte
         data = self.fd.recv(self.buffersize)
-        log.debug('received %s (%s)', data.rstrip(), data.encode('hex'))
-        #print 'data=(%s) (%s)' % (data, data.encode('hex'))
-        assert data[-2:] == '\r\n'
+        log.debug('received %s (%s)', data.rstrip(), data.hex())
+        assert data[-2:] == b'\r\n'
 
         tcl_result = int(data[-3])
 

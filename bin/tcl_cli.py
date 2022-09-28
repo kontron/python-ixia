@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import logging
 import readline
@@ -21,7 +21,7 @@ def main():
         logging.getLogger('pyixia.tclproto').setLevel(logging.DEBUG)
 
     if len(args) < 1:
-        print parser.format_help()
+        print(parser.format_help())
         sys.exit(1)
 
     host = args[0]
@@ -29,24 +29,24 @@ def main():
     tcl = TclClient(host)
     tcl.connect()
     if options.autoconnect:
-        print tcl.call('ixConnectToChassis %s', host)[1]
+        print(tcl.call('ixConnectToChassis %s', host)[1])
 
-    print "Enter command to send. Quit with 'q'."
+    print("Enter command to send. Quit with 'q'.")
     try:
         while True:
-            cmd = raw_input('=> ')
+            cmd = input('=> ')
             if cmd == 'q':
                 break
             if len(cmd) > 0:
                 try:
                     (res, io) = tcl.call(cmd)
-                    print res
+                    print(res)
                     if io is not None:
-                        print io
-                except TclError, e:
-                    print 'ERROR: %s' % e.result
+                        print("output: %s" % io)
+                except TclError as e:
+                    print('ERROR: %s' % e.result)
     except EOFError:
-        print 'exitting..'
+        print('exitting..')
 
 if __name__ == '__main__':
     main()
