@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
-from .tclproto import TclClient
+from .tclproto import TclSocketClient
 from .ixapi import _MetaIxTclApi, TclMember, FLAG_RDONLY
 from .ixapi import IxTclHalApi, IxTclHalError
 
@@ -325,7 +325,7 @@ class Ixia:
     """This class supports only one chassis atm."""
     def __init__(self, host):
         self.host = host
-        self._tcl = TclClient(host)
+        self._tcl = TclSocketClient(host)
         self._api = IxTclHalApi(self._tcl)
         self.chassis = Chassis(self._api, host)
         self.session = Session(self._api)

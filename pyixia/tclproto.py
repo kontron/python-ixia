@@ -32,6 +32,15 @@ class TclError(Exception):
         return '%s: %s' % (self.__class__.__name__, self.result)
 
 class TclClient:
+    def _tcl_hal_version(self):
+        rsp = self.call('version cget -ixTclHALVersion')
+        return rsp[0].split('.')
+
+    def hal_version(self):
+        """Returns a tuple (major,minor) of the TCL HAL version."""
+        return tuple(self._tcl_hal_version()[0:2])
+
+class TclSocketClient(TclClient):
     def __init__(self, host, port=4555):
         self.host = host
         self.port = port
@@ -70,10 +79,6 @@ class TclClient:
         log.debug('result=%s io_output=%s', result, io_output)
         return result, io_output
 
-    def _tcl_hal_version(self):
-        rsp = self.call('version cget -ixTclHALVersion')
-        return rsp[0].split('.')
-
     def connect(self):
         log.debug('Opening connection to %s:%d', self.host, self.port)
         fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -85,7 +90,3 @@ class TclClient:
         log.debug('Closing connection')
         self.fd.close()
         self.fd = None
-
-    def hal_version(self):
-        """Returns a tuple (major,minor) of the TCL HAL version."""
-        return tuple(self._tcl_hal_version()[0:2])
