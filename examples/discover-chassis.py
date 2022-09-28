@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import logging
 import sys
@@ -21,18 +21,18 @@ def main():
     if len(sys.argv) == 2 and sys.argv[1] == '-d':
         logging.getLogger().setLevel(logging.DEBUG)
 
-    i = Ixia('ixia01')
+    i = Ixia('ixia')
     i.connect()
     i.discover()
 
-    print '%8s | %8s | %s' % ('Port', 'Owner', 'Link State')
-    print '---------+----------+-----------------'
+    print('%8s | %8s | %s' % ('Port', 'Owner', 'Link State'))
+    print('---------+----------+-----------------')
     for card in i.chassis.cards:
         if card is None:
             continue
         for port in card.ports:
-            print '%8s | %8s | %s' % (port, port.owner,
-                    link_state_str(port.link_state))
+            print('%8s | %8s | %s' % (port, port.owner,
+                    link_state_str(port.link_state)))
 
     i.disconnect()
 

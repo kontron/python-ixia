@@ -15,13 +15,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
-from tclproto import TclClient
-from ixapi import _MetaIxTclApi, TclMember, FLAG_RDONLY
-from ixapi import IxTclHalApi, IxTclHalError
+from .tclproto import TclClient
+from .ixapi import _MetaIxTclApi, TclMember, FLAG_RDONLY
+from .ixapi import IxTclHalApi, IxTclHalError
 
 log = logging.getLogger(__name__)
 
-class PortGroup(object):
+class PortGroup(metaclass=_MetaIxTclApi):
     START_TRANSMIT = 7
     STOP_TRANSMIT = 8
     START_CAPTURE = 9
@@ -35,7 +35,6 @@ class PortGroup(object):
     CLEAR_OWNERSHIP = 42
     CLEAR_OWNERSHIP_FORCED = 43
 
-    __metaclass__ = _MetaIxTclApi
     __tcl_command__ = 'portGroup'
     __tcl_members__ = [
             TclMember('lastTimeStamp', type=int, flags=FLAG_RDONLY),
@@ -108,9 +107,8 @@ class PortGroup(object):
             self._set_command(self.CLEAR_OWNERSHIP_FORCED)
 
 
-class Statistics(object):
+class Statistics(metaclass=_MetaIxTclApi):
     """Per port statistics."""
-    __metaclass__ = _MetaIxTclApi
     __tcl_command__ = 'stat'
     __tcl_members__ = [
             TclMember('bytesReceived', type=int, flags=FLAG_RDONLY),
@@ -129,8 +127,7 @@ class Statistics(object):
                 member.name, *self.port._port_id())
 
 
-class Port(object):
-    __metaclass__ = _MetaIxTclApi
+class Port(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'port'
     __tcl_members__ = [
             TclMember('name'),
@@ -177,8 +174,7 @@ class Port(object):
     def __str__(self):
         return '%d/%d/%d' % self._port_id()
 
-class Card(object):
-    __metaclass__ = _MetaIxTclApi
+class Card(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'card'
     __tcl_members__ = [
             TclMember('cardOperationMode', type=int, flags=FLAG_RDONLY),
@@ -209,7 +205,7 @@ class Card(object):
         self._api.call_rc('card set %d %d', *self._card_id())
 
     def discover(self):
-        for pid in xrange(self.port_count):
+        for pid in range(self.port_count):
             pid += 1 # one-based
             port = Port(self._api, self, pid)
             log.info('Adding port %s', port)
@@ -222,8 +218,7 @@ class Card(object):
         return '%d/%d' % self._card_id()
 
 
-class Chassis(object):
-    __metaclass__ = _MetaIxTclApi
+class Chassis(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'chassis'
     __tcl_members__ = [
             TclMember('baseIpAddress'),
@@ -289,7 +284,7 @@ class Chassis(object):
 
     def discover(self):
         log.info('Discover chassis %d (%s)', self.id, self.type_name)
-        for cid in xrange(self.max_card_count):
+        for cid in range(self.max_card_count):
             # unfortunately there is no config option which cards are used. So
             # we have to iterate over all possible card ids and check if we are
             # able to get a handle.
@@ -303,8 +298,7 @@ class Chassis(object):
                 # keep in sync with card ids
                 self.cards.append(None)
 
-class Session(object):
-    __metaclass__ = _MetaIxTclApi
+class Session(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'session'
     __tcl_members__ = [
             TclMember('userName', flags=FLAG_RDONLY),
@@ -327,7 +321,7 @@ class Session(object):
         self._api.call_rc('session logout')
 
 
-class Ixia(object):
+class Ixia:
     """This class supports only one chassis atm."""
     def __init__(self, host):
         self.host = host

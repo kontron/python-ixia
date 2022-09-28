@@ -79,7 +79,7 @@ def translate_ix_member_name(name):
     return ''.join(_new_name)
 
 
-class TclMember(object):
+class TclMember:
     def __init__(self, name, type=str, attrname=None, flags=0, doc=None):
         self.name = name
         self.type = type
@@ -97,7 +97,7 @@ class IxTclHalError(Exception):
         return '%s: %s' % (self.__class__.__name__, self.rc)
 
 
-class IxTclHalApi(object):
+class IxTclHalApi:
     def __init__(self, tcl_handler):
         self._tcl_handler = tcl_handler
 
