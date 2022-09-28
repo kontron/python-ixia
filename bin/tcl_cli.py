@@ -4,7 +4,7 @@ import logging
 import readline
 from optparse import OptionParser
 
-from pyixia.tclproto import TclClient, TclError
+from pyixia.tclproto import TclSocketClient, TclError
 
 def main():
     usage = 'usage: %prog [options] <host>'
@@ -26,7 +26,7 @@ def main():
 
     host = args[0]
 
-    tcl = TclClient(host)
+    tcl = TclSocketClient(host)
     tcl.connect()
     if options.autoconnect:
         print(tcl.call('ixConnectToChassis %s', host)[1])
