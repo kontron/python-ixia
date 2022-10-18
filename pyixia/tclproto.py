@@ -20,6 +20,8 @@
 
 import socket
 import logging
+import paramiko
+import os.path
 
 log = logging.getLogger(__name__)
 
@@ -88,5 +90,71 @@ class TclSocketClient(TclClient):
 
     def close(self):
         log.debug('Closing connection')
+        self.fd.close()
+        self.fd = None
+
+class TclSSHClient(TclClient):
+    def __init__(self, host, username="ixtcl", key_filename=None, port=22):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.key_filename = key_filename
+        if not self.key_filename:
+            self.key_filename = os.path.join(os.path.expanduser('~'), ".ssh", "id_ixia")
+        self.fd = None
+        self.buffersize = 10240
+
+    def call(self, string, *args):
+        if self.fd is None:
+            raise RuntimeError('TclClient is not connected')
+
+        data = string % args
+        log.debug('sending %s (%s)', data.rstrip(), data.encode('utf-8').hex())
+
+        # We've spawned a non-interactive tclsh on the peer and we can control
+        # the output format ourselves. But keep it simple and use a similar
+        # format to the old socket protocol.
+        #  [<io output>]\r<result><tcl return code>\a
+        # where tcl_return code is exactly one byte
+        data = 'set ret [catch {%s} result];puts -nonewline stdout "\\r${result}${ret}\\a";flush stdout\r\n' % data
+        log.debug('sending %s (%s)', data.rstrip(), data.encode('utf-8').hex())
+        self.fd.send(data)
+
+        data = b''
+        while not data.endswith(b'\a'):
+            data += self.fd.recv(self.buffersize)
+        log.debug('received %s (%s)', data.rstrip(), data.hex())
+
+        tcl_result = int(data[-2:-1])
+        io_output, result = data[:-2].rsplit(b'\r', 1)
+
+        if len(io_output) == 0:
+            io_output = None
+
+        if tcl_result == 1:
+            assert io_output == None
+            raise TclError(result)
+
+        log.debug('result=%s io_output=%s', result, io_output)
+        return result, io_output
+
+    def connect(self):
+        log.debug('Opening SSH connection to %s', self.host)
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(self.host, username=self.username,
+                key_filename=self.key_filename)
+        transport = ssh.get_transport()
+        chan = transport.open_session()
+        chan.exec_command("/bin/tclsh")
+        self.fd = chan
+
+        self.fd.send('fconfigure stdout -buffering full\n')
+        self.call('source /opt/ixia/ixos/current/IxiaWish.tcl')
+        self.call('package req IxTclHal')
+        self.call('logOff')
+
+    def close(self):
+        log.debug('Closing SSH connection')
         self.fd.close()
         self.fd = None
