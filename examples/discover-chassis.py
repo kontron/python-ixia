@@ -21,7 +21,7 @@ def main():
     if len(sys.argv) == 2 and sys.argv[1] == '-d':
         logging.getLogger().setLevel(logging.DEBUG)
 
-    i = Ixia('ixia')
+    i = Ixia('ssh://ixia')
     i.connect()
     i.discover()
 
