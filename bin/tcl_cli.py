@@ -2,12 +2,13 @@
 import sys
 import logging
 import readline
+from urllib.parse import urlparse
 from optparse import OptionParser
 
-from pyixia.tclproto import TclSocketClient, TclError
+from pyixia.tclproto import TclSSHClient, TclSocketClient, TclError
 
 def main():
-    usage = 'usage: %prog [options] <host>'
+    usage = 'usage: %prog [options] <host/url>'
     parser = OptionParser(usage=usage)
     parser.add_option('-a', action='store_true', dest='autoconnect',
             help='autoconnect to chassis')
@@ -24,9 +25,16 @@ def main():
         print(parser.format_help())
         sys.exit(1)
 
-    host = args[0]
+    o = urlparse(args[0], scheme='socket')
+    host = o.netloc or o.path
+    if o.scheme == 'socket':
+        tcl = TclSocketClient(host)
+    elif o.scheme == 'ssh':
+        tcl = TclSSHClient(host)
+    else:
+        print('Unknown URL scheme "%s"' % o.scheme)
+        sys.exit(1)
 
-    tcl = TclSocketClient(host)
     tcl.connect()
     if options.autoconnect:
         print(tcl.call('ixConnectToChassis %s', host)[1])
