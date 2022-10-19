@@ -355,6 +355,17 @@ class Ixia:
         self.chassis.disconnect()
         self._tcl.close()
 
+    def get_port(self, pid):
+        if type(pid) == str:
+            pid = tuple(map(int, pid.split('/')))
+        else:
+            pid = tuple(pid)
+        for card in self.chassis.cards:
+            for port in card.ports:
+                if pid == port._port_id():
+                    return port
+        raise LookupError()
+
     def new_port_group(self, id=None):
         return PortGroup(self._api, id)
 
