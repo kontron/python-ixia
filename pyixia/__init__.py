@@ -45,6 +45,7 @@ class PortGroup(metaclass=_MetaIxTclApi):
 
     def __init__(self, api, id=None):
         self._api = api
+        self.ports = list()
         if id is None:
             self.id = self.next_free_id
             self.next_free_id += 1
@@ -63,8 +64,10 @@ class PortGroup(metaclass=_MetaIxTclApi):
     def add_port(self, port):
         self._api.call_rc('portGroup add %s %d %d %d',
                 self.id, *port._port_id())
+        self.ports.append(port)
 
     def del_port(self, port):
+        self.ports.remove(port)
         self._api.call_rc('portGroup del %s %d %d %d',
                 self.id, *port._port_id())
 
