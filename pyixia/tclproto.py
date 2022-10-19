@@ -74,6 +74,10 @@ class TclSocketClient(TclClient):
             result = data[0]
             io_output = None
 
+        result = result.decode('ascii')
+        if io_output:
+            io_output = io_output.decode('ascii')
+
         if tcl_result == 1:
             assert io_output == None
             raise TclError(result)
@@ -129,6 +133,10 @@ class TclSSHClient(TclClient):
 
         if len(io_output) == 0:
             io_output = None
+
+        result = result.decode('ascii')
+        if io_output:
+            io_output = io_output.decode('ascii')
 
         if tcl_result == 1:
             assert io_output == None
