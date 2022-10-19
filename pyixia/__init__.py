@@ -307,8 +307,7 @@ class Chassis(metaclass=_MetaIxTclApi):
                 card.discover()
                 self.cards.append(card)
             except IxTclHalError:
-                # keep in sync with card ids
-                self.cards.append(None)
+                pass
 
 class Session(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'session'
