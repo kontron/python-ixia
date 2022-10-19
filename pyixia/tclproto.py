@@ -55,14 +55,14 @@ class TclSocketClient(TclClient):
 
         string += '\r\n'
         data = string % args
-        log.debug('sending %s (%s)', data.rstrip(), data.encode('utf-8').hex())
+        log.debug('sending "%s" (%s)', data.rstrip(), data.encode('utf-8').hex())
         self.fd.send(data)
 
         # reply format is
         #  [<io output>\r]<result><tcl return code>\r\n
         # where tcl_return code is exactly one byte
         data = self.fd.recv(self.buffersize)
-        log.debug('received %s (%s)', data.rstrip(), data.hex())
+        log.debug('received "%s" (%s)', data.rstrip(), data.hex())
         assert data[-2:] == b'\r\n'
 
         tcl_result = int(data[-3])
@@ -109,7 +109,7 @@ class TclSSHClient(TclClient):
             raise RuntimeError('TclClient is not connected')
 
         data = string % args
-        log.debug('sending %s (%s)', data.rstrip(), data.encode('utf-8').hex())
+        log.debug('sending "%s" (%s)', data.rstrip(), data.encode('utf-8').hex())
 
         # We've spawned a non-interactive tclsh on the peer and we can control
         # the output format ourselves. But keep it simple and use a similar
@@ -117,13 +117,12 @@ class TclSSHClient(TclClient):
         #  [<io output>]\r<result><tcl return code>\a
         # where tcl_return code is exactly one byte
         data = 'set ret [catch {%s} result];puts -nonewline stdout "\\r${result}${ret}\\a";flush stdout\r\n' % data
-        log.debug('sending %s (%s)', data.rstrip(), data.encode('utf-8').hex())
         self.fd.send(data)
 
         data = b''
         while not data.endswith(b'\a'):
             data += self.fd.recv(self.buffersize)
-        log.debug('received %s (%s)', data.rstrip(), data.hex())
+        log.debug('received "%s" (%s)', data.rstrip(), data.hex())
 
         tcl_result = int(data[-2:-1])
         io_output, result = data[:-2].rsplit(b'\r', 1)
