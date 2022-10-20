@@ -40,6 +40,8 @@ Note that there is only one temporary storage for each command.
 
 """
 
+from .helper import obj_match_attribute_value
+
 FLAG_RDONLY = 1
 
 
@@ -80,14 +82,25 @@ class TclMember:
 
 
 class IxTclHalError(Exception):
+    IXTCL_GENERAL_ERROR = 1
+    IXTCL_VERSION_MISMATCH = 2
+    IXTCL_CHASSIS_TIMEOUT = 3
+    IXTCL_NOT_AVAILABLE = 100
+    IXTCL_UNSUPPORTED_FEATURE = 101
+    IXTCL_OUT_OF_MEMORY = 102
+    IXTCL_ADDED_AS_DISABLED = 103
+    IXTCL_HARDWARE_CONFLICT = 202
+
     def __init__(self, rc):
         self.rc = rc
 
     def __repr__(self):
-        return '%s(rc="%s")' % (self.__class__.__name__, self.rc)
+        return '%s(rc=%d)' % (self.__class__.__name__, self.rc)
 
     def __str__(self):
-        return '%s: %s' % (self.__class__.__name__, self.rc)
+        desc = obj_match_attribute_value(self, "IXTCL_", self.rc)
+        desc = desc.lower().replace('_', ' ')
+        return '%s: %s (%d)' % (self.__class__.__name__, desc, self.rc)
 
 
 class IxTclHalApi:
@@ -98,8 +111,8 @@ class IxTclHalApi:
         return self._tcl_handler.call(cmd, *args)
 
     def call_rc(self, cmd, *args):
-        rc = self.call(cmd, *args)[0]
-        if int(rc) != 0:
+        rc = int(self.call(cmd, *args)[0])
+        if rc != 0:
             raise IxTclHalError(rc)
 
 
