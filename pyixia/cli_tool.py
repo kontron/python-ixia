@@ -8,6 +8,7 @@ import sys
 import argparse
 
 from . import Ixia
+from .ixapi import IxTclHalError
 from .helper import obj_match_attribute_value
 
 ALLOWED_PG_CMDS = 'take_ownership clear_ownership \
@@ -81,34 +82,37 @@ def main():
     if args.debug:
         logging.getLogger('').setLevel(logging.DEBUG)
 
-    i = Ixia(args.url)
-    i.connect()
-    i.discover()
+    try:
+        i = Ixia(args.url)
+        i.connect()
+        i.discover()
 
-    if not args.port_cmds and not args.pg_cmds and not args.stats:
-        print_ports(i)
+        if not args.port_cmds and not args.pg_cmds and not args.stats:
+            print_ports(i)
+            i.disconnect()
+            sys.exit(0)
+
+        i.session.login(args.user)
+
+        if args.port_cmds:
+            run_port_cmds(i, args.ports, args.port_cmds)
+
+        if args.pg_cmds:
+            pg = i.new_port_group()
+            pg.create()
+            for port in args.ports:
+                pg.add_port(i.get_port(port))
+
+            run_pg_cmds(pg, args.pg_cmds)
+
+            pg.destroy()
+
+        if args.stats:
+            print_stats(i, args.ports, args.stats)
+
         i.disconnect()
-        sys.exit(0)
-
-    i.session.login(args.user)
-
-    if args.port_cmds:
-        run_port_cmds(i, args.ports, args.port_cmds)
-
-    if args.pg_cmds:
-        pg = i.new_port_group()
-        pg.create()
-        for port in args.ports:
-            pg.add_port(i.get_port(port))
-
-        run_pg_cmds(pg, args.pg_cmds)
-
-        pg.destroy()
-
-    if args.stats:
-        print_stats(i, args.ports, args.stats)
-
-    i.disconnect()
+    except IxTclHalError as e:
+        print('ERROR: {!s}'.format(e))
 
 
 if __name__ == '__main__':
