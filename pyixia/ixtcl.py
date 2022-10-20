@@ -11,13 +11,14 @@ from optparse import OptionParser
 
 from pyixia.tclproto import TclSSHClient, TclSocketClient, TclError
 
+
 def main():
     usage = 'usage: %prog [options] <host/url>'
     parser = OptionParser(usage=usage)
     parser.add_option('-a', action='store_true', dest='autoconnect',
-            help='autoconnect to chassis')
+                      help='autoconnect to chassis')
     parser.add_option('-v', action='store_true', dest='verbose',
-            help='be more verbose')
+                      help='be more verbose')
 
     (options, args) = parser.parse_args()
 
@@ -59,6 +60,7 @@ def main():
                     print('ERROR: %s' % e.result)
     except EOFError:
         print('exitting..')
+
 
 if __name__ == '__main__':
     main()

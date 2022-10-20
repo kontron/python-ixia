@@ -42,9 +42,11 @@ Note that there is only one temporary storage for each command.
 
 FLAG_RDONLY = 1
 
+
 def two_chars(s):
     for i in range(len(s)-1):
         yield (s[i], s[i+1])
+
 
 def translate_ix_member_name(name):
     if len(name) == 1:
@@ -53,17 +55,17 @@ def translate_ix_member_name(name):
         _new_name = list()
         seperator = ''
         for cc in two_chars(name):
-            if cc[0].isupper(): # CC, Cc
-                if cc[1].islower(): # Cc
+            if cc[0].isupper():       # CC, Cc
+                if cc[1].islower():   # Cc
                     seperator = '_'
                 _new_name.extend((seperator, cc[0].lower()))
                 seperator = ''
-            else: # cc, cC
+            else:                     # cc, cC
                 _new_name.append(cc[0].lower())
-                if cc[1].isupper(): # cC
+                if cc[1].isupper():   # cC
                     seperator = '_'
-        _new_name.extend((seperator, cc[1].lower())) # append last character
-        if _new_name[0] == '_': # delete leading underscore
+        _new_name.extend((seperator, cc[1].lower()))  # append last character
+        if _new_name[0] == '_':       # delete leading underscore
             del _new_name[0]
     return ''.join(_new_name)
 
@@ -80,8 +82,10 @@ class TclMember:
 class IxTclHalError(Exception):
     def __init__(self, rc):
         self.rc = rc
+
     def __repr__(self):
         return '%s(rc="%s")' % (self.__class__.__name__, self.rc)
+
     def __str__(self):
         return '%s: %s' % (self.__class__.__name__, self.rc)
 
@@ -109,24 +113,26 @@ class _MetaIxTclApi(type):
     replacing every uppercase letter with the lowercase variant prepended with
     a '_', eg. 'portMode' will be translated to 'port_mode'.
 
-    The generated methods assume that the class provides a method called '_ix_get'
-    which fetches the properties and stores them into the IxTclHal object. Eg.
-    for the 'port' command this would be 'port get <ch> <card> <port>'.
+    The generated methods assume that the class provides a method called
+    '_ix_get' which fetches the properties and stores them into the IxTclHal
+    object. Eg.  for the 'port' command this would be 'port get <ch> <card>
+    <port>'.
     """
     def __new__(cls, clsname, clsbases, clsdict):
         members = clsdict.get('__tcl_members__', list())
         command = clsdict.get('__tcl_command__', None)
-        for (n,m) in enumerate(members):
+        for (n, m) in enumerate(members):
             if not isinstance(m, TclMember):
                 raise RuntimeError('Element #%d of __tcl_members__ is not a '
-                        'TclMember' % (n+1,))
+                                   'TclMember' % (n+1,))
+
             def fget(self, cmd=command, m=m):
                 self._ix_get(m)
-                val = self._api.call('%s cget -%s' % (cmd,m.name))[0]
+                val = self._api.call('%s cget -%s' % (cmd, m.name))[0]
                 return m.type(val)
 
             def fset(self, value, cmd=command, m=m):
-                val = self._api.call('%s config -%s %s' % (cmd,m.name,value))
+                self._api.call('%s config -%s %s' % (cmd, m.name, value))
                 self._ix_set(m)
 
             attrname = m.attrname
@@ -148,5 +154,3 @@ class _MetaIxTclApi(type):
             clsdict[attrname] = p
         t = type.__new__(cls, clsname, clsbases, clsdict)
         return t
-
-

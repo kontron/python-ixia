@@ -5,6 +5,7 @@ import sys
 
 from pyixia import Ixia, Port
 
+
 def link_state_str(link_state):
     prefix = 'LINK_STATE_'
     for attr in dir(Port):
@@ -13,6 +14,7 @@ def link_state_str(link_state):
             if val == link_state:
                 return attr[len(prefix):]
     return link_state
+
 
 def main():
     logging.basicConfig()
@@ -32,9 +34,10 @@ def main():
             continue
         for port in card.ports:
             print('%8s | %8s | %s' % (port, port.owner,
-                    link_state_str(port.link_state)))
+                                      link_state_str(port.link_state)))
 
     i.disconnect()
+
 
 if __name__ == '__main__':
     main()

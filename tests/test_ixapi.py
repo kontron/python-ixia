@@ -6,6 +6,7 @@
 from pyixia.ixapi import translate_ix_member_name
 from nose.tools import eq_
 
+
 def test_translate_ix_member_name():
     eq_(translate_ix_member_name('A'), 'a')
     eq_(translate_ix_member_name('AA'), 'aa')

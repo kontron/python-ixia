@@ -5,6 +5,7 @@ import sys
 
 from pyixia import Ixia
 
+
 def main():
     logging.basicConfig()
     if len(sys.argv) == 2 and sys.argv[1] == '-v':
@@ -25,6 +26,7 @@ def main():
     pg.destroy()
 
     i.disconnect()
+
 
 if __name__ == '__main__':
     main()

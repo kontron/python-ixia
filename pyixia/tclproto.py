@@ -14,13 +14,17 @@ import os.path
 
 log = logging.getLogger(__name__)
 
+
 class TclError(Exception):
     def __init__(self, result):
         self.result = result
+
     def __repr__(self):
         return '%s(result="%s")' % (self.__class__.__name__, self.result)
+
     def __str__(self):
         return '%s: %s' % (self.__class__.__name__, self.result)
+
 
 class TclClient:
     def _tcl_hal_version(self):
@@ -30,6 +34,7 @@ class TclClient:
     def hal_version(self):
         """Returns a tuple (major,minor) of the TCL HAL version."""
         return tuple(self._tcl_hal_version()[0:2])
+
 
 class TclSocketClient(TclClient):
     def __init__(self, host, port=4555):
@@ -44,7 +49,8 @@ class TclSocketClient(TclClient):
 
         string += '\r\n'
         data = string % args
-        log.debug('sending "%s" (%s)', data.rstrip(), data.encode('utf-8').hex())
+        log.debug('sending "%s" (%s)',
+                  data.rstrip(), data.encode('utf-8').hex())
         self.fd.send(data)
 
         # reply format is
@@ -86,6 +92,7 @@ class TclSocketClient(TclClient):
         self.fd.close()
         self.fd = None
 
+
 class TclSSHClient(TclClient):
     def __init__(self, host, username="ixtcl", key_filename=None, port=22):
         self.host = host
@@ -93,7 +100,8 @@ class TclSSHClient(TclClient):
         self.username = username
         self.key_filename = key_filename
         if not self.key_filename:
-            self.key_filename = os.path.join(os.path.expanduser('~'), ".ssh", "id_ixia")
+            self.key_filename = os.path.join(os.path.expanduser('~'),
+                                             ".ssh", "id_ixia")
         self.fd = None
         self.buffersize = 10240
 
@@ -102,15 +110,20 @@ class TclSSHClient(TclClient):
             raise RuntimeError('TclClient is not connected')
 
         data = string % args
-        log.debug('sending "%s" (%s)', data.rstrip(), data.encode('utf-8').hex())
+        log.debug('sending "%s" (%s)',
+                  data.rstrip(), data.encode('utf-8').hex())
 
         # We've spawned a non-interactive tclsh on the peer and we can control
         # the output format ourselves. But keep it simple and use a similar
         # format to the old socket protocol.
         #  [<io output>]\r<result><tcl return code>\a
         # where tcl_return code is exactly one byte
-        data = 'set ret [catch {%s} result];puts -nonewline stdout "\\r${result}${ret}\\a";flush stdout\r\n' % data
-        self.fd.send(data)
+        wrapper = '''\
+set ret [catch {%s} result];\
+puts -nonewline stdout "\\r${result}${ret}\\a";\
+flush stdout\r\n\
+'''
+        self.fd.send(wrapper % data)
 
         data = b''
         while not data.endswith(b'\a'):
@@ -139,7 +152,7 @@ class TclSSHClient(TclClient):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(self.host, username=self.username,
-                key_filename=self.key_filename)
+                    key_filename=self.key_filename)
         transport = ssh.get_transport()
         chan = transport.open_session()
         chan.exec_command("/bin/tclsh")

@@ -4,7 +4,6 @@
 #
 
 import logging
-import sys
 import argparse
 
 from pyixia import Ixia
@@ -18,6 +17,7 @@ ALLOWED_STATISTICS = 'bytes_received bytes_sent \
         frames_received frames_sent \
         fcs_errors framer_fcs_errors fragments'.split()
 
+
 def obj_match_property_value(obj, prefix, link_state):
     for attr in dir(obj):
         if attr.startswith(prefix):
@@ -26,14 +26,17 @@ def obj_match_property_value(obj, prefix, link_state):
                 return attr[len(prefix):]
     return link_state
 
+
 def exec_commands(pg, commands_list):
     for command in commands_list:
         getattr(pg, command)()
+
 
 def get_statistics(i, ports, stats):
     fmt = '{!s:>8} ' + ' | {:<18}' * len(stats)
     for port in ports:
         print(fmt.format(port, *map(lambda s: getattr(port.stats, s), stats)))
+
 
 def print_ports(i):
     print('%8s | %6s | %s' % ('Port', 'Link', 'Owner'))
@@ -42,29 +45,29 @@ def print_ports(i):
         if card is None:
             continue
         for port in card.ports:
-            print('%8s | %6s | %s' % (port,
-                obj_match_property_value(port, 'LINK_STATE_',
-                    port.link_state).lower(),
-                port.owner))
+            state = obj_match_property_value(port, 'LINK_STATE_',
+                                             port.link_state)
+            print('%8s | %6s | %s' % (port, state.lower(), port.owner))
+
 
 def main():
     parser = argparse.ArgumentParser(prog="ixcli")
     parser.add_argument('url',
-            help='URL to connect to', metavar='URL')
+                        help='URL to connect to', metavar='URL')
     parser.add_argument('ports', nargs='*',
-            help='operate on these ports', metavar='PORTS')
+                        help='operate on these ports', metavar='PORTS')
     parser.add_argument('-v', action='store_true', dest='verbose',
-            help='be more verbose')
+                        help='be more verbose')
     parser.add_argument('-d', action='store_true', dest='debug',
-            help='enable debug mode')
+                        help='enable debug mode')
     parser.add_argument('-u', '--user', dest='user', default='pyixia',
-            help='user login', metavar='OWNER')
+                        help='user login', metavar='OWNER')
     parser.add_argument('-c', '--commands', dest='commands',
-            choices=ALLOWED_COMMANDS, action='append',
-            help='execute commands', metavar='CMD')
+                        choices=ALLOWED_COMMANDS, action='append',
+                        help='execute commands', metavar='CMD')
     parser.add_argument('-s', '--statistics', dest='statistics',
-            choices=ALLOWED_STATISTICS, action='append',
-            help='show statistics', metavar='STAT')
+                        choices=ALLOWED_STATISTICS, action='append',
+                        help='show statistics', metavar='STAT')
 
     args = parser.parse_args()
 
@@ -96,6 +99,7 @@ def main():
         print_ports(i)
 
     i.disconnect()
+
 
 if __name__ == '__main__':
     main()

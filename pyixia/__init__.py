@@ -11,6 +11,7 @@ from .ixapi import IxTclHalApi, IxTclHalError
 
 log = logging.getLogger(__name__)
 
+
 class PortGroup(metaclass=_MetaIxTclApi):
     START_TRANSMIT = 7
     STOP_TRANSMIT = 8
@@ -52,13 +53,13 @@ class PortGroup(metaclass=_MetaIxTclApi):
 
     def add_port(self, port):
         self._api.call_rc('portGroup add %s %d %d %d',
-                self.id, *port._port_id())
+                          self.id, *port._port_id())
         self.ports.append(port)
 
     def del_port(self, port):
         self.ports.remove(port)
         self._api.call_rc('portGroup del %s %d %d %d',
-                self.id, *port._port_id())
+                          self.id, *port._port_id())
 
     def _set_command(self, cmd):
         self._api.call_rc('portGroup setCommand %s %d', self.id, cmd)
@@ -121,11 +122,11 @@ class Statistics(metaclass=_MetaIxTclApi):
 
     def _ix_get(self, member):
         self._api.call('stat get %s %d %d %d',
-                member.name, *self.port._port_id())
+                       member.name, *self.port._port_id())
 
     def _ix_set(self, member):
         self._api.call('stat set %s %d %d %d',
-                member.name, *self.port._port_id())
+                       member.name, *self.port._port_id())
 
 
 class Port(metaclass=_MetaIxTclApi):
@@ -175,6 +176,7 @@ class Port(metaclass=_MetaIxTclApi):
     def __str__(self):
         return '%d/%d/%d' % self._port_id()
 
+
 class Card(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'card'
     __tcl_members__ = [
@@ -207,7 +209,7 @@ class Card(metaclass=_MetaIxTclApi):
 
     def discover(self):
         for pid in range(self.port_count):
-            pid += 1 # one-based
+            pid += 1  # one-based
             port = Port(self._api, self, pid)
             log.info('Adding port %s', port)
             self.ports.append(port)
@@ -289,7 +291,7 @@ class Chassis(metaclass=_MetaIxTclApi):
             # unfortunately there is no config option which cards are used. So
             # we have to iterate over all possible card ids and check if we are
             # able to get a handle.
-            cid += 1 # one-based
+            cid += 1  # one-based
             try:
                 card = Card(self._api, self, cid)
                 log.info('Adding card %s (%s)', card, card.type_name)
@@ -297,6 +299,7 @@ class Chassis(metaclass=_MetaIxTclApi):
                 self.cards.append(card)
             except IxTclHalError:
                 pass
+
 
 class Session(metaclass=_MetaIxTclApi):
     __tcl_command__ = 'session'
