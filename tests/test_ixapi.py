@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: LGPL-2.0-or-later
+#
+# Copyright (c) 2015 Kontron Europe GmbH
+#
+
 from pyixia.ixapi import translate_ix_member_name
 from nose.tools import eq_
 

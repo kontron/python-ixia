@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-2.0-or-later
+#
+# Copyright (c) 2015 Kontron Europe GmbH
+#
 
 import logging
 import sys
