@@ -4,29 +4,30 @@
 #
 
 import logging
+import sys
 import argparse
 
 from . import Ixia
 from .helper import obj_match_attribute_value
 
-ALLOWED_COMMANDS = 'take_ownership clear_ownership \
+ALLOWED_PG_CMDS = 'take_ownership clear_ownership \
         start_transmit stop_transmit step_transmit pause_transmit \
         start_capture stop_capture reset_statistics'.split()
-
-ALLOWED_STATISTICS = 'bytes_received bytes_sent \
+ALLOWED_STATS = 'bytes_received bytes_sent \
         bits_received bits_sent \
         frames_received frames_sent \
         fcs_errors framer_fcs_errors fragments'.split()
 
 
-def exec_commands(pg, commands_list):
-    for command in commands_list:
-        getattr(pg, command)()
+def run_pg_cmds(pg, cmds):
+    for cmd in cmds:
+        getattr(pg, cmd)()
 
 
-def get_statistics(i, ports, stats):
+def print_stats(i, ports, stats):
     fmt = '{!s:>8} ' + ' | {:<18}' * len(stats)
-    for port in ports:
+    for pid in ports:
+        port = i.get_port(pid)
         print(fmt.format(port, *map(lambda s: getattr(port.stats, s), stats)))
 
 
@@ -54,11 +55,11 @@ def main():
                         help='enable debug mode')
     parser.add_argument('-u', '--user', dest='user', default='pyixia',
                         help='user login', metavar='OWNER')
-    parser.add_argument('-c', '--commands', dest='commands',
-                        choices=ALLOWED_COMMANDS, action='append',
-                        help='execute commands', metavar='CMD')
-    parser.add_argument('-s', '--statistics', dest='statistics',
-                        choices=ALLOWED_STATISTICS, action='append',
+    parser.add_argument('-c', '--pg-command', dest='pg_cmds',
+                        choices=ALLOWED_PG_CMDS, action='append',
+                        help='run port group commands', metavar='CMD')
+    parser.add_argument('-s', '--stats', dest='stats',
+                        choices=ALLOWED_STATS, action='append',
                         help='show statistics', metavar='STAT')
 
     args = parser.parse_args()
@@ -73,22 +74,25 @@ def main():
     i.connect()
     i.discover()
 
-    if args.commands or args.statistics:
-        i.session.login(args.user)
+    if not args.pg_cmds and not args.stats:
+        print_ports(i)
+        i.disconnect()
+        sys.exit(0)
+
+    i.session.login(args.user)
+
+    if args.pg_cmds:
         pg = i.new_port_group()
         pg.create()
         for port in args.ports:
             pg.add_port(i.get_port(port))
 
-        if args.commands:
-            exec_commands(pg, args.commands)
-
-        if args.statistics:
-            get_statistics(i, pg.ports, args.statistics)
+        run_pg_cmds(pg, args.pg_cmds)
 
         pg.destroy()
-    else:
-        print_ports(i)
+
+    if args.stats:
+        print_stats(i, args.ports, args.stats)
 
     i.disconnect()
 
