@@ -7,6 +7,7 @@ import logging
 import argparse
 
 from . import Ixia
+from .helper import obj_match_attribute_value
 
 ALLOWED_COMMANDS = 'take_ownership clear_ownership \
         start_transmit stop_transmit step_transmit pause_transmit \
@@ -16,15 +17,6 @@ ALLOWED_STATISTICS = 'bytes_received bytes_sent \
         bits_received bits_sent \
         frames_received frames_sent \
         fcs_errors framer_fcs_errors fragments'.split()
-
-
-def obj_match_property_value(obj, prefix, link_state):
-    for attr in dir(obj):
-        if attr.startswith(prefix):
-            val = getattr(obj, attr)
-            if val == link_state:
-                return attr[len(prefix):]
-    return link_state
 
 
 def exec_commands(pg, commands_list):
@@ -45,8 +37,8 @@ def print_ports(i):
         if card is None:
             continue
         for port in card.ports:
-            state = obj_match_property_value(port, 'LINK_STATE_',
-                                             port.link_state)
+            state = obj_match_attribute_value(port, 'LINK_STATE_',
+                                              port.link_state)
             print('%8s | %6s | %s' % (port, state.lower(), port.owner))
 
 
