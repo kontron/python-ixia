@@ -13,10 +13,18 @@ from .helper import obj_match_attribute_value
 ALLOWED_PG_CMDS = 'take_ownership clear_ownership \
         start_transmit stop_transmit step_transmit pause_transmit \
         start_capture stop_capture reset_statistics'.split()
+ALLOWED_PORT_CMDS = 'factory_defaults mode_defaults'.split()
 ALLOWED_STATS = 'bytes_received bytes_sent \
         bits_received bits_sent \
         frames_received frames_sent \
         fcs_errors framer_fcs_errors fragments'.split()
+
+
+def run_port_cmds(i, ports, cmds):
+    for pid in ports:
+        port = i.get_port(pid)
+        for cmd in cmds:
+            getattr(port, cmd)()
 
 
 def run_pg_cmds(pg, cmds):
@@ -58,6 +66,9 @@ def main():
     parser.add_argument('-c', '--pg-command', dest='pg_cmds',
                         choices=ALLOWED_PG_CMDS, action='append',
                         help='run port group commands', metavar='CMD')
+    parser.add_argument('-C', '--port-command', dest='port_cmds',
+                        choices=ALLOWED_PORT_CMDS, action='append',
+                        help='run port commands', metavar='CMD')
     parser.add_argument('-s', '--stats', dest='stats',
                         choices=ALLOWED_STATS, action='append',
                         help='show statistics', metavar='STAT')
@@ -74,12 +85,15 @@ def main():
     i.connect()
     i.discover()
 
-    if not args.pg_cmds and not args.stats:
+    if not args.port_cmds and not args.pg_cmds and not args.stats:
         print_ports(i)
         i.disconnect()
         sys.exit(0)
 
     i.session.login(args.user)
+
+    if args.port_cmds:
+        run_port_cmds(i, args.ports, args.port_cmds)
 
     if args.pg_cmds:
         pg = i.new_port_group()
