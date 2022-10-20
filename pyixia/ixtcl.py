@@ -9,7 +9,7 @@ import readline
 from urllib.parse import urlparse
 from optparse import OptionParser
 
-from pyixia.tclproto import TclSSHClient, TclSocketClient, TclError
+from .tclproto import TclSSHClient, TclSocketClient, TclError
 
 
 def main():

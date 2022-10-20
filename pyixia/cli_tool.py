@@ -6,7 +6,7 @@
 import logging
 import argparse
 
-from pyixia import Ixia
+from . import Ixia
 
 ALLOWED_COMMANDS = 'take_ownership clear_ownership \
         start_transmit stop_transmit step_transmit pause_transmit \
