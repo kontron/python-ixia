@@ -20,10 +20,10 @@ class TclError(Exception):
         self.result = result
 
     def __repr__(self):
-        return '%s(result="%s")' % (self.__class__.__name__, self.result)
+        return '%s(result=%d)' % (self.__class__.__name__, self.result)
 
     def __str__(self):
-        return '%s: %s' % (self.__class__.__name__, self.result)
+        return '%s: %d' % (self.__class__.__name__, self.result)
 
 
 class TclClient:
@@ -75,7 +75,7 @@ class TclSocketClient(TclClient):
 
         if tcl_result == 1:
             assert io_output == None
-            raise TclError(result)
+            raise TclError(int(result))
 
         log.debug('result=%s io_output=%s', result, io_output)
         return result, io_output
@@ -142,7 +142,7 @@ flush stdout\r\n\
 
         if tcl_result == 1:
             assert io_output == None
-            raise TclError(result)
+            raise TclError(int(result))
 
         log.debug('result=%s io_output=%s', result, io_output)
         return result, io_output
